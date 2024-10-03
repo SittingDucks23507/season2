@@ -48,80 +48,50 @@ import com.qualcomm.robotcore.hardware.Servo;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="mechanum drive", group="Robot")
-public class MechanumDrive extends LinearOpMode {
+@TeleOp(name="Encoders", group="Robot")
+public class Encoders extends LinearOpMode {
 
     /* Declare OpMode members. */
-    public DcMotor  frontLeft, frontRight, backLeft, backRight, armMotor;
+    public DcMotor armMotor;
     public Servo hand;
-    public CRServo finger;
 
     @Override
     public void runOpMode() {
-        final float handRight = 0.2f;
-        final float handCenter = 0.55f;
-        final float handLeft = 0.9f;
 
-        hand.setPosition(handCenter);
-
-        // Define Motors
-        frontLeft = hardwareMap.get(DcMotor.class, "front_left");
-        frontRight = hardwareMap.get(DcMotor.class, "front_right");
-        backLeft = hardwareMap.get(DcMotor.class, "back_left");
-        backRight = hardwareMap.get(DcMotor.class, "back_right");
-
+        // Define and Initialize Motors
         armMotor = hardwareMap.get(DcMotor.class, "arm_motor");
-
-        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        // Define Servos
         hand = hardwareMap.get(Servo.class, "hand");
-        finger = hardwareMap.get(CRServo.class, "finger");
 
+        armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         waitForStart();
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            double lsY, lsX, rsX;
-            finger.setPower(0);
-
-            lsY = gamepad1.left_stick_y; // Up is now positive
-            lsX = gamepad1.left_stick_x;
-            rsX = -gamepad1.right_stick_x; // un-backwards it
-            frontLeft.setPower(lsY + lsX + rsX);
-            frontRight.setPower(lsY - lsX - rsX);
-            backLeft.setPower(lsY - lsX + rsX);
-            backRight.setPower(lsY + lsX - rsX);
-
-            if (gamepad2.left_stick_y > 0.1 || gamepad2.left_stick_y < -0.1) {
-                int encpos = (int)-gamepad2.left_stick_y * 100 + armMotor.getCurrentPosition();
-                armMotor.setTargetPosition(encpos); // TODO: change this to the actual pos
+//            armMotor.setPower(bti(gamepad1.dpad_up) - bti(gamepad1.dpad_down));
+            if (gamepad1.dpad_up) {
+                armMotor.setTargetPosition(200);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(0.2);
             }
-
-            if (gamepad2.dpad_right) {
-                hand.setPosition(handRight);
+            if (gamepad1.dpad_down) {
+                armMotor.setTargetPosition(50);
+                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                armMotor.setPower(0.2);
             }
-            if (gamepad2.dpad_up) {
-                hand.setPosition(handCenter);
+            if (gamepad1.a) {
+                armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             }
-            if (gamepad2.dpad_left){
-                hand.setPosition(handLeft);
+            if (gamepad1.dpad_left) {
+                hand.setPosition(hand.getPosition() - 0.1);
             }
-
-            if (gamepad2.a){
-                finger.setPower(1);
-            }
-
-            if (gamepad2.b) {
-                finger.setPower(-1);
+            if (gamepad1.dpad_right) {
+                hand.setPosition(hand.getPosition() + 0.1);
             }
 
             telemetry.addData("Arm Motor", armMotor.getCurrentPosition());
             telemetry.addData("Hand Servo", hand.getPosition());
-            telemetry.addData("Finger Servo (Continuous)", finger.getPower());
+            telemetry.addData("lsy", gamepad2.left_stick_y);
             telemetry.update();
 
             // reasonable speed
