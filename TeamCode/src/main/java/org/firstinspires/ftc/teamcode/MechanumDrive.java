@@ -62,8 +62,6 @@ public class MechanumDrive extends LinearOpMode {
         final float handCenter = 0.55f;
         final float handLeft = 0.9f;
 
-        hand.setPosition(handCenter);
-
         // Define Motors
         frontLeft = hardwareMap.get(DcMotor.class, "front_left");
         frontRight = hardwareMap.get(DcMotor.class, "front_right");
@@ -79,6 +77,7 @@ public class MechanumDrive extends LinearOpMode {
         hand = hardwareMap.get(Servo.class, "hand");
         finger = hardwareMap.get(CRServo.class, "finger");
 
+        hand.setPosition(handCenter);
         waitForStart();
 
         // run until the end of the match (driver presses STOP)
