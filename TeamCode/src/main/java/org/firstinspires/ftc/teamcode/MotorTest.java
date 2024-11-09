@@ -29,12 +29,11 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
 
 /*
  * This OpMode executes a POV Game style Teleop for a direct drive robot
@@ -48,43 +47,45 @@ import com.qualcomm.robotcore.hardware.Servo;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Encoders", group="Robot")
-public class Encoders extends LinearOpMode {
+@TeleOp(name="motor test", group="Tests")
+public class MotorTest extends LinearOpMode {
 
     /* Declare OpMode members. */
-    public DcMotor armMotor;
-    public Servo hand;
+    public DcMotor  frontLeft, frontRight, backLeft, backRight;
 
     @Override
     public void runOpMode() {
+        final float POWER = 0.5f;
+        // Define Motors
+        frontLeft = hardwareMap.get(DcMotor.class, "front_left");
+        frontRight = hardwareMap.get(DcMotor.class, "front_right");
+        backLeft = hardwareMap.get(DcMotor.class, "back_left");
+        backRight = hardwareMap.get(DcMotor.class, "back_right");
 
-        // Define and Initialize Motors
-        armMotor = hardwareMap.get(DcMotor.class, "intake_arm");
-
-        armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontLeft.setDirection(REVERSE);
+        backLeft.setDirection(REVERSE);
         waitForStart();
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-//            armMotor.setPower(bti(gamepad1.dpad_up) - bti(gamepad1.dpad_down));
-            if (gamepad1.dpad_up) {
-                armMotor.setTargetPosition(armMotor.getCurrentPosition() + 100);
-                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(0.2);
-            }
-            if (gamepad1.dpad_down) {
-                armMotor.setTargetPosition(armMotor.getCurrentPosition() - 100);
-                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(0.2);
-            }
-            if (gamepad1.a) {
-                armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            }
+            if (gamepad1.triangle)
+                frontRight.setPower(POWER);
+            if (gamepad1.circle)
+                backRight.setPower(POWER);
+            if (gamepad1.square)
+                frontLeft.setPower(POWER);
+            if (gamepad1.cross)
+                backLeft.setPower(POWER);
 
-            telemetry.addData("Arm Motor", armMotor.getCurrentPosition());
-            telemetry.addData("lsy", gamepad2.left_stick_y);
+            telemetry.addData("Front Left", frontLeft.getPower());
+            telemetry.addData("Front Right", frontRight.getPower());
+            telemetry.addData("Back Left", backLeft.getPower());
+            telemetry.addData("Back Right", backRight.getPower());
             telemetry.update();
+            frontRight.setPower(0);
+            frontLeft.setPower(0);
+            backRight.setPower(0);
+            backLeft.setPower(0);
 
             // reasonable speed
             sleep(50);

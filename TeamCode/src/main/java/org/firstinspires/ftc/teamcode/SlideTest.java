@@ -48,42 +48,40 @@ import com.qualcomm.robotcore.hardware.Servo;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Encoders", group="Robot")
-public class Encoders extends LinearOpMode {
+@TeleOp(name="slide test", group="Tests")
+public class SlideTest extends LinearOpMode {
 
     /* Declare OpMode members. */
-    public DcMotor armMotor;
-    public Servo hand;
+    public DcMotor  leftSlide, rightSlide;
+    final double SPEED = 0.25;
 
     @Override
     public void runOpMode() {
-
-        // Define and Initialize Motors
-        armMotor = hardwareMap.get(DcMotor.class, "intake_arm");
-
-        armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftSlide = hardwareMap.get(DcMotor.class, "left_slide");
+        rightSlide = hardwareMap.get(DcMotor.class, "right_slide");
         waitForStart();
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-//            armMotor.setPower(bti(gamepad1.dpad_up) - bti(gamepad1.dpad_down));
-            if (gamepad1.dpad_up) {
-                armMotor.setTargetPosition(armMotor.getCurrentPosition() + 100);
-                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(0.2);
-            }
-            if (gamepad1.dpad_down) {
-                armMotor.setTargetPosition(armMotor.getCurrentPosition() - 100);
-                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(0.2);
-            }
-            if (gamepad1.a) {
-                armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            if (gamepad2.dpad_up) {
+                leftSlide.setPower(SPEED);
+                rightSlide.setPower(-SPEED); // right side is flipped
+            } if (gamepad2.dpad_down) {
+                leftSlide.setPower(-SPEED);
+                rightSlide.setPower(SPEED);
             }
 
-            telemetry.addData("Arm Motor", armMotor.getCurrentPosition());
-            telemetry.addData("lsy", gamepad2.left_stick_y);
+            if (gamepad1.square) {
+                leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                leftSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            }
+            if (gamepad1.circle) {
+                rightSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                rightSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            }
+
+            telemetry.addData("Left Slide", leftSlide.getCurrentPosition());
+            telemetry.addData("Right Slide", rightSlide.getCurrentPosition());
             telemetry.update();
 
             // reasonable speed
