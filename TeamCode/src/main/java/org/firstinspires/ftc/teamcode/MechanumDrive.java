@@ -21,13 +21,18 @@
  * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRW_UPTION) HOWEVER
  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 package org.firstinspires.ftc.teamcode;
+
+import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_TO_POSITION;
+import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
+
+import static java.lang.Math.abs;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -52,15 +57,22 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class MechanumDrive extends LinearOpMode {
 
     /* Declare OpMode members. */
-    public DcMotor  frontLeft, frontRight, backLeft, backRight, armMotor;
-    public Servo hand;
+    public DcMotor  frontLeft, frontRight, backLeft, backRight, armMotor, leftSlide, rightSlide;
+    public Servo wrist;
     public CRServo finger;
 
     @Override
     public void runOpMode() {
-        final float handRight = 0.2f;
-        final float handCenter = 0.55f;
-        final float handLeft = 0.9f;
+        // Wrist
+        final double W_UP = 0.55;
+        final double W_CENTER = 0.25;
+        final double W_DOWN = 0;
+        // Arm
+        final int A_UP = -550;
+        final int A_DOWN = -50;
+        final int A_STORE = -300;
+        
+        final float armPower = 0.1f;
 
         // Define Motors
         frontLeft = hardwareMap.get(DcMotor.class, "front_left");
@@ -68,59 +80,96 @@ public class MechanumDrive extends LinearOpMode {
         backLeft = hardwareMap.get(DcMotor.class, "back_left");
         backRight = hardwareMap.get(DcMotor.class, "back_right");
 
-        armMotor = hardwareMap.get(DcMotor.class, "arm_motor");
+        leftSlide = hardwareMap.get(DcMotor.class, "left_slide");
+        rightSlide = hardwareMap.get(DcMotor.class, "right_slide");
 
-        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        armMotor = hardwareMap.get(DcMotor.class, "intake_arm");
+
         armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         // Define Servos
-        hand = hardwareMap.get(Servo.class, "hand");
+        wrist = hardwareMap.get(Servo.class, "wrist");
         finger = hardwareMap.get(CRServo.class, "finger");
 
-        hand.setPosition(handCenter);
+        frontLeft.setDirection(REVERSE);
+        backLeft.setDirection(REVERSE);
         waitForStart();
-
+        wrist.setPosition(W_CENTER);
+        armMotor.setTargetPosition(A_STORE);
+        armMotor.setMode(RUN_TO_POSITION);
+        armMotor.setPower(armPower);
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             double lsY, lsX, rsX;
             finger.setPower(0);
 
-            lsY = gamepad1.left_stick_y; // Up is now positive
+            lsY = -gamepad1.left_stick_y; // W_UP is now positive
             lsX = gamepad1.left_stick_x;
-            rsX = -gamepad1.right_stick_x; // un-backwards it
+            rsX = gamepad1.right_stick_x; // un-backwards it
             frontLeft.setPower(lsY + lsX + rsX);
             frontRight.setPower(lsY - lsX - rsX);
             backLeft.setPower(lsY - lsX + rsX);
             backRight.setPower(lsY + lsX - rsX);
 
-            if (gamepad2.left_stick_y > 0.1 || gamepad2.left_stick_y < -0.1) {
-                int encpos = (int)-gamepad2.left_stick_y * 100 + armMotor.getCurrentPosition();
-                armMotor.setTargetPosition(encpos); // TODO: change this to the actual pos
-                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(0.2);
+            /*
+             * Operator (gamepad2)
+             */
+            // Arm
+            if (gamepad2.right_bumper) {
+                armMotor.setTargetPosition(A_DOWN);
+                armMotor.setMode(RUN_TO_POSITION);
+                armMotor.setPower(armPower);
+            }
+            if (gamepad2.left_bumper) {
+                armMotor.setTargetPosition(A_UP);
+                armMotor.setMode(RUN_TO_POSITION);
+                armMotor.setPower(armPower);
+            }
+            if (gamepad2.ps) {
+                armMotor.setTargetPosition(A_STORE);
+                armMotor.setMode(RUN_TO_POSITION);
+                armMotor.setPower(armPower);
             }
 
-            if (gamepad2.dpad_right) {
-                hand.setPosition(handRight);
-            }
+            // Wrist
             if (gamepad2.dpad_up) {
-                hand.setPosition(handCenter);
+                wrist.setPosition(W_UP);
             }
-            if (gamepad2.dpad_left){
-                hand.setPosition(handLeft);
+            if (gamepad2.dpad_down) {
+                wrist.setPosition(W_DOWN);
+            }
+            if (gamepad2.dpad_left || gamepad2.dpad_right) {
+                wrist.setPosition(W_CENTER);
             }
 
-            if (gamepad2.a){
+            if (gamepad2.circle){
                 finger.setPower(1);
             }
 
-            if (gamepad2.b) {
+            if (gamepad2.cross) {
                 finger.setPower(-1);
             }
+            if (gamepad2.triangle) {
+                    leftSlide.setTargetPosition(-4300);
+                    leftSlide.setMode(RUN_TO_POSITION);
+                    leftSlide.setPower(0.2);
 
-            telemetry.addData("Arm Motor", armMotor.getCurrentPosition());
-            telemetry.addData("Hand Servo", hand.getPosition());
+                    rightSlide.setTargetPosition(4300);
+                    rightSlide.setMode(RUN_TO_POSITION);
+                    rightSlide.setPower(0.2);
+            } if (gamepad2.square) {
+                leftSlide.setTargetPosition(-50);
+                leftSlide.setMode(RUN_TO_POSITION);
+                leftSlide.setPower(0.2);
+
+                rightSlide.setTargetPosition(50);
+                rightSlide.setMode(RUN_TO_POSITION);
+                rightSlide.setPower(0.2);
+            }
+
+//            telemetry.addData("Arm Motor", armMotor.getCurrentPosition());
+            telemetry.addData("Hand Servo", wrist.getPosition());
             telemetry.addData("Finger Servo (Continuous)", finger.getPower());
+            telemetry.addData("arm", armMotor.getCurrentPosition());
             telemetry.update();
 
             // reasonable speed
