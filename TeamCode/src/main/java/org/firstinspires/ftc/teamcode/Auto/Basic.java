@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.Auto;
 
+import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -16,6 +18,8 @@ public class Basic extends LinearOpMode {
         backLeft = hardwareMap.get(DcMotor.class, "back_left");
         backRight = hardwareMap.get(DcMotor.class, "back_right");
 
+        frontLeft.setDirection(REVERSE);
+        backLeft.setDirection(REVERSE);
         waitForStart();
         while (opModeIsActive()) {
             frontLeft.setPower(SPEED);
