@@ -31,6 +31,7 @@ package org.firstinspires.ftc.teamcode;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_TO_POSITION;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
+import static com.qualcomm.robotcore.hardware.Servo.Direction.FORWARD;
 
 import static java.lang.Math.abs;
 
@@ -39,6 +40,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 
 /*
@@ -55,24 +57,30 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp(name="mechanum drive", group="Robot")
 public class MechanumDrive extends LinearOpMode {
-
-    /* Declare OpMode members. */
-    public DcMotor  frontLeft, frontRight, backLeft, backRight, armMotor, leftSlide, rightSlide;
-    public Servo wrist;
-    public CRServo finger;
-
     @Override
     public void runOpMode() {
+        DcMotor  frontLeft, frontRight, backLeft, backRight, armMotor, leftSlide, rightSlide;
+        Servo wrist, leftBucket, rightBucket;
+        CRServo finger;
+
         // Wrist
         final double W_UP = 0.55;
         final double W_CENTER = 0.25;
         final double W_DOWN = 0;
         // Arm
         final int A_UP = -550;
-        final int A_DOWN = -50;
+        final int A_DOWN = -15;
         final int A_STORE = -300;
         
+        final float SLIDE_POWER = 0.5f;
+        
         final float armPower = 0.1f;
+
+        int slidepos = 0; // TODO: make this an enum
+        int bucketstate = 0; // TODO: make this an enum
+
+        Gamepad cgp2 = new Gamepad();
+        Gamepad ogp2 = new Gamepad();
 
         // Define Motors
         frontLeft = hardwareMap.get(DcMotor.class, "front_left");
@@ -88,27 +96,38 @@ public class MechanumDrive extends LinearOpMode {
         armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         // Define Servos
         wrist = hardwareMap.get(Servo.class, "wrist");
+
+        leftBucket = hardwareMap.get(Servo.class, "left_bucket");
+        leftBucket.setDirection(Servo.Direction.REVERSE);
+        rightBucket = hardwareMap.get(Servo.class, "right_bucket");
+
         finger = hardwareMap.get(CRServo.class, "finger");
 
         frontLeft.setDirection(REVERSE);
         backLeft.setDirection(REVERSE);
         waitForStart();
-        wrist.setPosition(W_CENTER);
         armMotor.setTargetPosition(A_STORE);
         armMotor.setMode(RUN_TO_POSITION);
         armMotor.setPower(armPower);
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             double lsY, lsX, rsX;
+            float speed = 1f;
+
+            ogp2.copy(cgp2);
             finger.setPower(0);
+
+            if (gamepad1.right_bumper) {
+                speed = 0.25f;
+            }
 
             lsY = -gamepad1.left_stick_y; // W_UP is now positive
             lsX = gamepad1.left_stick_x;
             rsX = gamepad1.right_stick_x; // un-backwards it
-            frontLeft.setPower(lsY + lsX + rsX);
-            frontRight.setPower(lsY - lsX - rsX);
-            backLeft.setPower(lsY - lsX + rsX);
-            backRight.setPower(lsY + lsX - rsX);
+            frontLeft.setPower((lsY + lsX + rsX)  * speed);
+            frontRight.setPower((lsY - lsX - rsX) * speed);
+            backLeft.setPower((lsY - lsX + rsX)   * speed);
+            backRight.setPower((lsY + lsX - rsX)  * speed);
 
             /*
              * Operator (gamepad2)
@@ -132,13 +151,32 @@ public class MechanumDrive extends LinearOpMode {
 
             // Wrist
             if (gamepad2.dpad_up) {
-                wrist.setPosition(W_UP);
+                 wrist.setPosition(W_UP);
             }
             if (gamepad2.dpad_down) {
                 wrist.setPosition(W_DOWN);
             }
             if (gamepad2.dpad_left || gamepad2.dpad_right) {
                 wrist.setPosition(W_CENTER);
+            }
+
+            // case statement
+            if (slidepos == 1) {
+                // At the top now
+                if (gamepad2.square && !ogp2.square) {
+                    bucketstate++;
+                }
+            }
+            if (slidepos == 0) {
+                bucketstate = 0;
+            }
+            if (bucketstate == 0) {
+                leftBucket.setPosition(0.5);
+                rightBucket.setPosition(0.5);
+            }
+            if (bucketstate == 1) {
+                leftBucket.setPosition(1);
+                rightBucket.setPosition(1);
             }
 
             if (gamepad2.circle){
@@ -148,30 +186,40 @@ public class MechanumDrive extends LinearOpMode {
             if (gamepad2.cross) {
                 finger.setPower(-1);
             }
-            if (gamepad2.triangle) {
-                    leftSlide.setTargetPosition(-4300);
+            if (gamepad2.triangle && !ogp2.triangle) {
+                if (slidepos == 1) {
+                    leftSlide.setTargetPosition(-50);
                     leftSlide.setMode(RUN_TO_POSITION);
-                    leftSlide.setPower(0.2);
+                    leftSlide.setPower(SLIDE_POWER);
 
-                    rightSlide.setTargetPosition(4300);
+                    rightSlide.setTargetPosition(50);
                     rightSlide.setMode(RUN_TO_POSITION);
-                    rightSlide.setPower(0.2);
-            } if (gamepad2.square) {
-                leftSlide.setTargetPosition(-50);
-                leftSlide.setMode(RUN_TO_POSITION);
-                leftSlide.setPower(0.2);
+                    rightSlide.setPower(SLIDE_POWER);
+                }
+                if (slidepos == 0) {
+                    leftSlide.setTargetPosition(-2800);
+                    leftSlide.setMode(RUN_TO_POSITION);
+                    leftSlide.setPower(SLIDE_POWER);
 
-                rightSlide.setTargetPosition(50);
-                rightSlide.setMode(RUN_TO_POSITION);
-                rightSlide.setPower(0.2);
+                    rightSlide.setTargetPosition(2800);
+                    rightSlide.setMode(RUN_TO_POSITION);
+                    rightSlide.setPower(SLIDE_POWER);
+                }
+                slidepos++;
+                slidepos %= 2;
             }
 
 //            telemetry.addData("Arm Motor", armMotor.getCurrentPosition());
             telemetry.addData("Hand Servo", wrist.getPosition());
             telemetry.addData("Finger Servo (Continuous)", finger.getPower());
+            telemetry.addData("slidepos", slidepos);
+            telemetry.addData("bucketstate", bucketstate);
             telemetry.addData("arm", armMotor.getCurrentPosition());
             telemetry.update();
 
+            slidepos %= 2;
+            bucketstate %= 2;
+            cgp2.copy(gamepad2);
             // reasonable speed
             sleep(50);
         }
