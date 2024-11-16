@@ -48,7 +48,7 @@ import com.qualcomm.robotcore.hardware.Servo;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Encoders", group="Robot")
+@TeleOp(name="Arm Calibrate", group="Calibrations")
 public class Encoders extends LinearOpMode {
 
     /* Declare OpMode members. */
@@ -77,7 +77,7 @@ public class Encoders extends LinearOpMode {
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(0.2);
             }
-            if (gamepad1.a) {
+            if (gamepad1.cross) {
                 armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             }

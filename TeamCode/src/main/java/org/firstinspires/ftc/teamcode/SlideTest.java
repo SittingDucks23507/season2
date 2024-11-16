@@ -29,6 +29,8 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_TO_POSITION;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -63,12 +65,23 @@ public class SlideTest extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            if (gamepad2.dpad_up) {
-                leftSlide.setPower(SPEED);
-                rightSlide.setPower(-SPEED); // right side is flipped
-            } if (gamepad2.dpad_down) {
-                leftSlide.setPower(-SPEED);
-                rightSlide.setPower(SPEED);
+            if (gamepad1.dpad_up) {
+                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() + 50);
+                leftSlide.setMode(RUN_TO_POSITION);
+                leftSlide.setPower(0.2);
+            } if (gamepad1.dpad_down) {
+                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() - 50);
+                leftSlide.setMode(RUN_TO_POSITION);
+                leftSlide.setPower(0.2);
+            }
+            if (gamepad1.triangle) {
+                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() - 50);
+                rightSlide.setMode(RUN_TO_POSITION);
+                rightSlide.setPower(0.2);
+            } if (gamepad1.cross) {
+                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() + 50);
+                rightSlide.setMode(RUN_TO_POSITION);
+                rightSlide.setPower(0.2);
             }
 
             if (gamepad1.square) {
