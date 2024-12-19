@@ -29,14 +29,12 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_TO_POSITION;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 
 /*
@@ -55,28 +53,11 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class MechanumDrive extends LinearOpMode {
     @Override
     public void runOpMode() {
-        DcMotor  frontLeft, frontRight, backLeft, backRight, armMotor, leftSlide, rightSlide;
-        Servo wrist, leftBucket, rightBucket;
+        DcMotor  frontLeft, frontRight, backLeft, backRight;
+        DcMotor leftSlide, rightSlide, arm, b;
+
+        Servo wrist;
         CRServo finger;
-
-        // Wrist
-        final double W_UP = 0.55;
-        final double W_CENTER = 0.25;
-        final double W_DOWN = 0;
-        // Arm
-        final int A_UP = -550;
-        final int A_DOWN = -15;
-        final int A_STORE = -300;
-        
-        final float SLIDE_POWER = 0.5f;
-        
-        final float armPower = 0.1f;
-
-        int slidepos = 0; // TODO: make this an enum
-        int bucketstate = 0; // TODO: make this an enum
-
-        Gamepad cgp2 = new Gamepad();
-        Gamepad ogp2 = new Gamepad();
 
         // Define Motors
         frontLeft = hardwareMap.get(DcMotor.class, "front_left");
@@ -84,38 +65,33 @@ public class MechanumDrive extends LinearOpMode {
         backLeft = hardwareMap.get(DcMotor.class, "back_left");
         backRight = hardwareMap.get(DcMotor.class, "back_right");
 
-        leftSlide = hardwareMap.get(DcMotor.class, "left_slide");
-        rightSlide = hardwareMap.get(DcMotor.class, "right_slide");
+        arm = hardwareMap.get(DcMotor.class, "las");
+        b = hardwareMap.get(DcMotor.class, "la");
 
-        armMotor = hardwareMap.get(DcMotor.class, "intake_arm");
-
-        armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        // Define Servos
         wrist = hardwareMap.get(Servo.class, "wrist");
-
-        leftBucket = hardwareMap.get(Servo.class, "left_bucket");
-        leftBucket.setDirection(Servo.Direction.REVERSE);
-        rightBucket = hardwareMap.get(Servo.class, "right_bucket");
-
         finger = hardwareMap.get(CRServo.class, "finger");
 
         frontLeft.setDirection(REVERSE);
         backLeft.setDirection(REVERSE);
+
+        arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        wrist.setDirection(Servo.Direction.REVERSE);
         waitForStart();
-        armMotor.setTargetPosition(A_STORE);
-        armMotor.setMode(RUN_TO_POSITION);
-        armMotor.setPower(armPower);
+
+        arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             double lsY, lsX, rsX;
             float speed = 1f;
-
-            ogp2.copy(cgp2);
+//            float armm = 0f;
+            float bm = 0f;
+            final float SLIDE_POWER = 1f;
             finger.setPower(0);
 
             if (gamepad1.right_bumper) {
                 speed = 0.25f;
             }
+            bm -= gamepad2.right_stick_y;
 
             lsY = -gamepad1.left_stick_y; // W_UP is now positive
             lsX = gamepad1.left_stick_x;
@@ -125,97 +101,32 @@ public class MechanumDrive extends LinearOpMode {
             backLeft.setPower((lsY - lsX + rsX)   * speed);
             backRight.setPower((lsY + lsX - rsX)  * speed);
 
-            /*
-             * Operator (gamepad2)
-             */
-            // Arm
-            if (gamepad2.right_bumper) {
-                armMotor.setTargetPosition(A_DOWN);
-                armMotor.setMode(RUN_TO_POSITION);
-                armMotor.setPower(armPower);
-            }
-            if (gamepad2.left_bumper) {
-                armMotor.setTargetPosition(A_UP);
-                armMotor.setMode(RUN_TO_POSITION);
-                armMotor.setPower(armPower);
-            }
-            if (gamepad2.ps) {
-                armMotor.setTargetPosition(A_STORE);
-                armMotor.setMode(RUN_TO_POSITION);
-                armMotor.setPower(armPower);
-            }
+            if (gamepad2.dpad_up)
+                wrist.setPosition(0);
+            if (gamepad2.dpad_down)
+                wrist.setPosition(.4);
 
-            // Wrist
-            if (gamepad2.dpad_up) {
-                 wrist.setPosition(W_UP);
-            }
-            if (gamepad2.dpad_down) {
-                wrist.setPosition(W_DOWN);
-            }
-            if (gamepad2.dpad_left || gamepad2.dpad_right) {
-                wrist.setPosition(W_CENTER);
-            }
-
-            // case statement
-            if (slidepos == 1) {
-                // At the top now
-                if (gamepad2.square && !ogp2.square) {
-                    bucketstate++;
-                }
-            }
-            if (slidepos == 0) {
-                bucketstate = 0;
-            }
-            if (bucketstate == 0) {
-                leftBucket.setPosition(0.5);
-                rightBucket.setPosition(0.5);
-            }
-            if (bucketstate == 1) {
-                leftBucket.setPosition(1);
-                rightBucket.setPosition(1);
-            }
-
-            if (gamepad2.circle){
+            if (gamepad2.cross)
                 finger.setPower(1);
-            }
-
-            if (gamepad2.cross) {
+            if (gamepad2.square)
                 finger.setPower(-1);
-            }
-            if (gamepad2.triangle && !ogp2.triangle) {
-                if (slidepos == 1) {
-                    leftSlide.setTargetPosition(-50);
-                    leftSlide.setMode(RUN_TO_POSITION);
-                    leftSlide.setPower(SLIDE_POWER);
 
-                    rightSlide.setTargetPosition(50);
-                    rightSlide.setMode(RUN_TO_POSITION);
-                    rightSlide.setPower(SLIDE_POWER);
-                }
-                if (slidepos == 0) {
-                    leftSlide.setTargetPosition(-2800);
-                    leftSlide.setMode(RUN_TO_POSITION);
-                    leftSlide.setPower(SLIDE_POWER);
+            arm.setTargetPosition(arm.getCurrentPosition() + (int)(100 * -gamepad2.left_stick_y));
+            arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            arm.setPower(0.5);
 
-                    rightSlide.setTargetPosition(2800);
-                    rightSlide.setMode(RUN_TO_POSITION);
-                    rightSlide.setPower(SLIDE_POWER);
-                }
-                slidepos++;
-                slidepos %= 2;
-            }
+            b.setPower(bm * 0.5);
 
-//            telemetry.addData("Arm Motor", armMotor.getCurrentPosition());
-            telemetry.addData("Hand Servo", wrist.getPosition());
-            telemetry.addData("Finger Servo (Continuous)", finger.getPower());
-            telemetry.addData("slidepos", slidepos);
-            telemetry.addData("bucketstate", bucketstate);
-            telemetry.addData("arm", armMotor.getCurrentPosition());
+            telemetry.addData("Front Left", frontLeft);
+            telemetry.addData("Front Right", frontRight);
+            telemetry.addData("Back Left", backLeft);
+            telemetry.addData("Back Right", backRight);
+            telemetry.addData("Arm", arm.getCurrentPosition());
+            telemetry.addData("b", b.getPower());
+            telemetry.addLine("----------");
+            telemetry.addData("Wrist", wrist.getPosition());
+            telemetry.addData("Finger", finger.getPower());
             telemetry.update();
-
-            slidepos %= 2;
-            bucketstate %= 2;
-            cgp2.copy(gamepad2);
             // reasonable speed
             sleep(50);
         }
