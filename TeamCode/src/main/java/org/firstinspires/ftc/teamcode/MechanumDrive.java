@@ -65,9 +65,6 @@ public class MechanumDrive extends LinearOpMode {
         backLeft = hardwareMap.get(DcMotor.class, "back_left");
         backRight = hardwareMap.get(DcMotor.class, "back_right");
 
-//        leftSlide = hardwareMap.get(DcMotor.class, "left_slide");
-//        rightSlide = hardwareMap.get(DcMotor.class, "right_slide");
-
         arm = hardwareMap.get(DcMotor.class, "las");
         b = hardwareMap.get(DcMotor.class, "la");
 
@@ -78,12 +75,15 @@ public class MechanumDrive extends LinearOpMode {
         backLeft.setDirection(REVERSE);
 
         arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        wrist.setDirection(Servo.Direction.REVERSE);
         waitForStart();
+
+        arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             double lsY, lsX, rsX;
             float speed = 1f;
-            float armm = 0f;
+//            float armm = 0f;
             float bm = 0f;
             final float SLIDE_POWER = 1f;
             finger.setPower(0);
@@ -91,12 +91,6 @@ public class MechanumDrive extends LinearOpMode {
             if (gamepad1.right_bumper) {
                 speed = 0.25f;
             }
-//            armm += gamepad1.right_trigger;
-//            armm -= gamepad1.left_trigger;
-            armm -= gamepad2.left_stick_y;
-
-//            bm += gamepad2.right_trigger;
-//            bm -= gamepad2.left_trigger;
             bm -= gamepad2.right_stick_y;
 
             lsY = -gamepad1.left_stick_y; // W_UP is now positive
@@ -107,52 +101,26 @@ public class MechanumDrive extends LinearOpMode {
             backLeft.setPower((lsY - lsX + rsX)   * speed);
             backRight.setPower((lsY + lsX - rsX)  * speed);
 
-//            if (gamepad1.square)
-//                leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//            if (gamepad1.circle)
-//                rightSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//
-//            if (gamepad1.dpad_up) {
-//                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() - 100);
-//                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() + 100);
-//
-//                leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//                leftSlide.setPower(SLIDE_POWER);
-//
-//                rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//                rightSlide.setPower(SLIDE_POWER);
-//            }
-//            if (gamepad1.dpad_down) {
-//                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() + 100);
-//                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() - 100);
-//
-//                leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//                leftSlide.setPower(SLIDE_POWER);
-//
-//                rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//                rightSlide.setPower(SLIDE_POWER);
-//            }
-
             if (gamepad2.dpad_up)
                 wrist.setPosition(0);
             if (gamepad2.dpad_down)
-                wrist.setPosition(.5);
+                wrist.setPosition(.4);
 
             if (gamepad2.cross)
                 finger.setPower(1);
             if (gamepad2.square)
                 finger.setPower(-1);
 
-            arm.setPower(armm * 0.5);
+            arm.setTargetPosition(arm.getCurrentPosition() + (int)(100 * -gamepad2.left_stick_y));
+            arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            arm.setPower(0.5);
+
             b.setPower(bm * 0.5);
 
             telemetry.addData("Front Left", frontLeft);
             telemetry.addData("Front Right", frontRight);
             telemetry.addData("Back Left", backLeft);
             telemetry.addData("Back Right", backRight);
-//            telemetry.addLine("----------");
-//            telemetry.addData("Left Slide", leftSlide.getCurrentPosition());
-//            telemetry.addData("Right Slide", rightSlide.getCurrentPosition());
             telemetry.addData("Arm", arm.getCurrentPosition());
             telemetry.addData("b", b.getPower());
             telemetry.addLine("----------");
