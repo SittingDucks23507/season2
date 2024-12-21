@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Auto;
 
+import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_TO_POSITION;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -27,6 +28,8 @@ public class MechanumAuto extends LinearOpMode {
 
     // Motor SPEED, adjust as necessary
     private final float SPEED = 0.25f;
+    private final float TPR = 575.2f; // TODO: Update to actual value
+    private final float RPI = 0.0f; // TODO: find out
 
     // Takes an integer matrix ‘m’ and multiplies it by scalar ‘c’
     private double[][] mulsm(int[][] m, double c) {
@@ -58,11 +61,49 @@ public class MechanumAuto extends LinearOpMode {
         frontLeft.setPower(movevec[0][0]);
         frontRight.setPower(movevec[0][1]);
         backLeft.setPower(movevec[1][0]);
-        backRight.setPower((movevec[1][1]));
+        backRight.setPower(movevec[1][1]);
 
         runtime.reset();
         while (opModeIsActive() && (runtime.seconds() < time)) {
             telemetry.addData("time", runtime.seconds());
+            telemetry.update();
+        }
+
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        backLeft.setPower(0);
+        backRight.setPower(0);
+    }
+    private void moveticks(float inches, int[][] direction) {
+        frontLeft.setTargetPosition((int)(inches * TPR * RPI) * direction[0][0]);
+        frontRight.setTargetPosition((int)(inches * TPR * RPI) * direction[0][1]);
+        backLeft.setTargetPosition((int)(inches * TPR * RPI) * direction[1][0]);
+        backRight.setTargetPosition((int)(inches * TPR * RPI) * direction[1][1]);
+
+        frontLeft.setMode(RUN_TO_POSITION);
+        frontRight.setMode(RUN_TO_POSITION);
+        backLeft.setMode(RUN_TO_POSITION);
+        backRight.setMode(RUN_TO_POSITION);
+        frontLeft.setPower(SPEED);
+        frontRight.setPower(SPEED);
+        backLeft.setPower(SPEED);
+        backRight.setPower(SPEED);
+        while (opModeIsActive() &&
+                frontLeft.isBusy() &&
+                frontRight.isBusy() &&
+                backLeft.isBusy() &&
+                backRight.isBusy()) {
+            telemetry.addData("Target (FLFRBLBR)", "%7d, %7d, %7d, %7d",
+                    frontLeft.getTargetPosition(),
+                    frontRight.getTargetPosition(),
+                    backLeft.getTargetPosition(),
+                    backRight.getTargetPosition());
+
+            telemetry.addData("Position (FLFRBLBR)", "%7d, %7d, %7d, %7d",
+                    frontLeft.getCurrentPosition(),
+                    frontRight.getCurrentPosition(),
+                    backLeft.getCurrentPosition(),
+                    backRight.getCurrentPosition());
             telemetry.update();
         }
 
