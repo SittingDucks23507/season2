@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_TO_POSITION;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -59,11 +60,15 @@ public class MechanumDrive extends LinearOpMode {
         Servo wrist;
         CRServo finger;
 
+        final int INC = 100;
         // Define Motors
         frontLeft = hardwareMap.get(DcMotor.class, "front_left");
         frontRight = hardwareMap.get(DcMotor.class, "front_right");
         backLeft = hardwareMap.get(DcMotor.class, "back_left");
         backRight = hardwareMap.get(DcMotor.class, "back_right");
+
+        leftSlide = hardwareMap.get(DcMotor.class, "left_slide");
+        rightSlide = hardwareMap.get(DcMotor.class, "right_slide");
 
         arm = hardwareMap.get(DcMotor.class, "las");
         b = hardwareMap.get(DcMotor.class, "la");
@@ -101,7 +106,10 @@ public class MechanumDrive extends LinearOpMode {
             backLeft.setPower((lsY - lsX + rsX)   * speed);
             backRight.setPower((lsY + lsX - rsX)  * speed);
 
-            if (gamepad2.dpad_up)
+            /*
+             * Gamepad 2
+             */
+            if (gamepad2.dpad_left)
                 wrist.setPosition(0);
             if (gamepad2.dpad_down)
                 wrist.setPosition(.4);
@@ -110,6 +118,27 @@ public class MechanumDrive extends LinearOpMode {
                 finger.setPower(1);
             if (gamepad2.square)
                 finger.setPower(-1);
+
+            // Slides
+            if (gamepad2.triangle || gamepad2.dpad_up) {
+                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() + INC);
+                rightSlide.setMode(RUN_TO_POSITION);
+
+                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() - INC);
+                leftSlide.setMode(RUN_TO_POSITION);
+
+                rightSlide.setPower(1);
+                leftSlide.setPower(1);
+            } if (gamepad2.circle || gamepad2.dpad_right) {
+                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() - INC);
+                rightSlide.setMode(RUN_TO_POSITION);
+
+                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() + INC);
+                leftSlide.setMode(RUN_TO_POSITION);
+
+                leftSlide.setPower(1);
+                rightSlide.setPower(1);
+            }
 
             arm.setTargetPosition(arm.getCurrentPosition() + (int)(100 * -gamepad2.left_stick_y));
             arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
