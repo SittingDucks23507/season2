@@ -1,25 +1,21 @@
 package org.firstinspires.ftc.teamcode.Auto;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_TO_POSITION;
-import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-// TODO: movetime() on its own, to be included in other classes.
-
-@Autonomous(name="Drifting Auto", group="Experimental")
-public class MechanumAuto extends LinearOpMode {
+public class MechanumAuto {
+    public LinearOpMode lop;
     // Directions to be used with movetime()
-    private final int[][] FORWARD = { {1, 1},
-                                      {1, 1} };
-    private final int[][] LEFT    = { {-1, 1},
-                                      {1, -1} };
+    public final int[][] FORWARD = { {1, 1},
+            {1, 1} };
+    public final int[][] LEFT    = { {-1, 1},
+            {1, -1} };
 
-    private final int[][] DOWN    = dtoim(mulsm(FORWARD, -1));
-    private final int[][] RIGHT   = dtoim(mulsm(LEFT, -1));
+    public final int[][] DOWN    = dtoim(mulsm(FORWARD, -1));
+    public final int[][] RIGHT   = dtoim(mulsm(LEFT, -1));
 
     // define motors
     public DcMotor frontLeft, frontRight, backLeft, backRight;
@@ -28,8 +24,8 @@ public class MechanumAuto extends LinearOpMode {
 
     // Motor SPEED, adjust as necessary
     private final float SPEED = 0.25f;
-    private final float TPR = 575.2f; // TODO: Update to actual value
-    private final float RPI = 0.0f; // TODO: find out
+    private final float TPR = ((((1+(46/17))) * (1+(46/11))) * 28); // TODO: Update to actual value
+    private final float RPI = 1.0f; // TODO: find out
 
     // Takes an integer matrix ‘m’ and multiplies it by scalar ‘c’
     private double[][] mulsm(int[][] m, double c) {
@@ -55,7 +51,7 @@ public class MechanumAuto extends LinearOpMode {
 
     // Runs motors at SPEED power for ‘time’ seconds in ‘direction’
     // Directions as defined above ‘FORWARD’ ‘DOWN’ ‘LEFT’ ‘RIGHT’
-    private void movetime(float time, int[][] direction) {
+    public void movetime(float time, int[][] direction) {
         double[][] movevec = mulsm(direction, SPEED);
 
         frontLeft.setPower(movevec[0][0]);
@@ -64,9 +60,9 @@ public class MechanumAuto extends LinearOpMode {
         backRight.setPower(movevec[1][1]);
 
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < time)) {
-            telemetry.addData("time", runtime.seconds());
-            telemetry.update();
+        while (lop.opModeIsActive() && (runtime.seconds() < time)) {
+            lop.telemetry.addData("time", runtime.seconds());
+            lop.telemetry.update();
         }
 
         frontLeft.setPower(0);
@@ -74,7 +70,7 @@ public class MechanumAuto extends LinearOpMode {
         backLeft.setPower(0);
         backRight.setPower(0);
     }
-    private void moveticks(float inches, int[][] direction) {
+    public void moveticks(float inches, int[][] direction) {
         frontLeft.setTargetPosition((int)(inches * TPR * RPI) * direction[0][0]);
         frontRight.setTargetPosition((int)(inches * TPR * RPI) * direction[0][1]);
         backLeft.setTargetPosition((int)(inches * TPR * RPI) * direction[1][0]);
@@ -88,47 +84,28 @@ public class MechanumAuto extends LinearOpMode {
         frontRight.setPower(SPEED);
         backLeft.setPower(SPEED);
         backRight.setPower(SPEED);
-        while (opModeIsActive() &&
+        while (lop.opModeIsActive() &&
                 frontLeft.isBusy() &&
                 frontRight.isBusy() &&
                 backLeft.isBusy() &&
                 backRight.isBusy()) {
-            telemetry.addData("Target (FLFRBLBR)", "%7d, %7d, %7d, %7d",
+            lop.telemetry.addData("Target (FLFRBLBR)", "%7d, %7d, %7d, %7d",
                     frontLeft.getTargetPosition(),
                     frontRight.getTargetPosition(),
                     backLeft.getTargetPosition(),
                     backRight.getTargetPosition());
 
-            telemetry.addData("Position (FLFRBLBR)", "%7d, %7d, %7d, %7d",
+            lop.telemetry.addData("Position (FLFRBLBR)", "%7d, %7d, %7d, %7d",
                     frontLeft.getCurrentPosition(),
                     frontRight.getCurrentPosition(),
                     backLeft.getCurrentPosition(),
                     backRight.getCurrentPosition());
-            telemetry.update();
+            lop.telemetry.update();
         }
 
         frontLeft.setPower(0);
         frontRight.setPower(0);
         backLeft.setPower(0);
         backRight.setPower(0);
-    }
-
-    @Override
-    public void runOpMode() {
-        // Initalize motors
-        frontLeft = hardwareMap.get(DcMotor.class, "front_left");
-        frontRight = hardwareMap.get(DcMotor.class, "front_right");
-        backLeft = hardwareMap.get(DcMotor.class, "back_left");
-        backRight = hardwareMap.get(DcMotor.class, "back_right");
-
-        frontLeft.setDirection(REVERSE);
-        backLeft.setDirection(REVERSE);
-
-        waitForStart();
-
-        // Sample instructions, drives forward for three seconds and left for two
-        movetime(3.0f, FORWARD);
-        movetime(2.0f, LEFT);
-        sleep(50);
     }
 }

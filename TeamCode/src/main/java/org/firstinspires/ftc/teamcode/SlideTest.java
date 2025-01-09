@@ -52,7 +52,8 @@ public class SlideTest extends LinearOpMode {
 
     /* Declare OpMode members. */
     public DcMotor  leftSlide, rightSlide;
-    final double SPEED = 0.25;
+    double speed = 1;
+    final int INC = 100;
 
     @Override
     public void runOpMode() {
@@ -63,22 +64,22 @@ public class SlideTest extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             if (gamepad1.dpad_up) {
-                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() + 50);
+                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() - INC);
                 leftSlide.setMode(RUN_TO_POSITION);
-                leftSlide.setPower(0.2);
+                leftSlide.setPower(speed);
             } if (gamepad1.dpad_down) {
-                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() - 50);
+                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() + INC);
                 leftSlide.setMode(RUN_TO_POSITION);
-                leftSlide.setPower(0.2);
+                leftSlide.setPower(speed);
             }
             if (gamepad1.triangle) {
-                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() - 50);
+                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() + INC);
                 rightSlide.setMode(RUN_TO_POSITION);
-                rightSlide.setPower(0.2);
+                rightSlide.setPower(speed);
             } if (gamepad1.cross) {
-                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() + 50);
+                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() - INC);
                 rightSlide.setMode(RUN_TO_POSITION);
-                rightSlide.setPower(0.2);
+                rightSlide.setPower(speed);
             }
 
             if (gamepad1.square) {
@@ -92,6 +93,7 @@ public class SlideTest extends LinearOpMode {
 
             telemetry.addData("Left Slide", leftSlide.getCurrentPosition());
             telemetry.addData("Right Slide", rightSlide.getCurrentPosition());
+            telemetry.addData("speed", speed);
             telemetry.update();
 
             // reasonable speed
