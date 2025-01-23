@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Auto;
 
+import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -9,8 +10,10 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name="ZZZ Basket", group="Robot")
+@Autonomous(name="Basket (Test)", group="zTests")
 public class Basket extends LinearOpMode {
+    private ElapsedTime runtime = new ElapsedTime();
+
     @Override
     public void runOpMode() {
         MechanumAuto Auto = new MechanumAuto();
@@ -34,6 +37,8 @@ public class Basket extends LinearOpMode {
         wrist = hardwareMap.get(Servo.class, "wrist");
         finger = hardwareMap.get(CRServo.class, "finger");
 
+        arm.setZeroPowerBehavior(BRAKE);
+
         Auto.frontLeft.setDirection(REVERSE);
         Auto.backLeft.setDirection(REVERSE);
         Auto.lop = this;
@@ -41,7 +46,14 @@ public class Basket extends LinearOpMode {
         waitForStart();
         wrist.setPosition(0);
 
-        arm.setTargetPosition(arm.getCurrentPosition());
+        arm.setTargetPosition(arm.getCurrentPosition() + 500);
+        arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        arm.setPower(0.5);
+        runtime.reset();
+        while ((opModeIsActive() && arm.isBusy()) || (runtime.seconds() < 3)) {
+            telemetry.addData("arm", arm.getCurrentPosition());
+        }
+        arm.setTargetPosition(arm.getCurrentPosition() - 600);
         arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         arm.setPower(0.5);
 
@@ -63,6 +75,16 @@ public class Basket extends LinearOpMode {
         // over time
         sleep(500);
         b.setPower(0);
+
+        arm.setTargetPosition(arm.getCurrentPosition() - 200);
+        arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        arm.setPower(0.5);
+        runtime.reset();
+        while ((opModeIsActive() && arm.isBusy()) || (runtime.seconds() < 5)) {
+            telemetry.addData("arm", arm.getCurrentPosition());
+        }
+        arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        arm.setPower(0);
 
         finger.setPower(1);
         sleep(500);
