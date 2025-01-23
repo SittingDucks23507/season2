@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-@Autonomous(name="AUTONOMOUS", group="Robot")
+@Autonomous(name="MoveTicks (Test)", group="zTests")
 public class AutoTest extends LinearOpMode {
     @Override
     public void runOpMode() {

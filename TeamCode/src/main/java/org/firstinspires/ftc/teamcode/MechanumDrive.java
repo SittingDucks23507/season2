@@ -88,9 +88,9 @@ public class MechanumDrive extends LinearOpMode {
         while (opModeIsActive()) {
             double lsY, lsX, rsX;
             float speed = 1f;
-//            float armm = 0f;
+            float armm = 1f;
             float bm = 0f;
-            final float SLIDE_POWER = 1f;
+            float left_slide = 0f, right_slide = 0f;
             finger.setPower(0);
 
             if (gamepad1.right_bumper) {
@@ -120,30 +120,23 @@ public class MechanumDrive extends LinearOpMode {
                 finger.setPower(-1);
 
             // Slides
-            if (gamepad2.triangle || gamepad2.dpad_up) {
-                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() + INC);
-                rightSlide.setMode(RUN_TO_POSITION);
-
-                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() - INC);
-                leftSlide.setMode(RUN_TO_POSITION);
-
-                rightSlide.setPower(1);
-                leftSlide.setPower(1);
-            } if (gamepad2.circle || gamepad2.dpad_right) {
-                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() - INC);
-                rightSlide.setMode(RUN_TO_POSITION);
-
-                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() + INC);
-                leftSlide.setMode(RUN_TO_POSITION);
-
-                leftSlide.setPower(1);
-                rightSlide.setPower(1);
+            if (gamepad2.triangle || gamepad2.dpad_up || gamepad2.right_bumper) { // Upwards
+                right_slide = 1f;
+                left_slide = -1f;
+            } if (gamepad2.circle || gamepad2.dpad_right || gamepad2.left_bumper) { // Downwards
+                right_slide = -1f;
+                left_slide = 1f;
             }
 
-            arm.setTargetPosition(arm.getCurrentPosition() + (int)(100 * -gamepad2.left_stick_y));
+            if (gamepad2.right_trigger > 0.25)
+                armm = 0.5f;
+
+            arm.setTargetPosition(arm.getCurrentPosition() + (int)(100 * armm * -gamepad2.left_stick_y));
             arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             arm.setPower(0.5);
 
+            leftSlide.setPower(left_slide);
+            rightSlide.setPower(right_slide);
             b.setPower(bm * 0.5);
 
             telemetry.addData("Front Left", frontLeft);
@@ -155,6 +148,8 @@ public class MechanumDrive extends LinearOpMode {
             telemetry.addLine("----------");
             telemetry.addData("Wrist", wrist.getPosition());
             telemetry.addData("Finger", finger.getPower());
+            telemetry.addLine("----------");
+            telemetry.addData("armm", armm);
             telemetry.update();
             // reasonable speed
             sleep(50);
